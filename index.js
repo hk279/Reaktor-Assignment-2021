@@ -31,38 +31,62 @@ const getManufacturers = (data) => {
 const initialize = async () => {
     let productData = await getProductData("gloves");
     manufacturers = getManufacturers(productData);
-    console.log("Initialized");
+    console.log(manufacturers);
+    console.log("Initialized\n");
 };
 
 initialize();
 
 // Call functions in order to get the manufacturer list.
 
-// Get availability data for the given manufacturer
+// Gets availability data for the given manufacturer
 const getOneManufacturerData = (manufacturer) => {
-    return new Promise((resolve, reject) => {
-        axios.get("https://bad-api-assignment.reaktor.com/v2/availability/" + manufacturer).then((res) => {
-            if (res.headers["x-error-modes-active"] === "availability-empty") {
-                console.log("Sneaky error detected in query: " + manufacturer);
-                reject("Sneaky error");
-            } else {
-                resolve(res.data.response);
-            }
-        });
-    });
+    return axios
+        .get("https://bad-api-assignment.reaktor.com/v2/availability/" + manufacturer)
+        .then((res) => res.data.response);
 };
 
-// Compile all API-calls for different manufacturers into one
+// Combines all individual manufacturer data requests into a single promise. Handles failed requests.
 const getAllManufacturersData = async () => {
     let allRequests = [];
+    let data = [];
+    let failedRequests = [];
 
     manufacturers.forEach((element) => {
         allRequests.push(getOneManufacturerData(element));
     });
 
-    const promiseAll = Promise.all(allRequests);
+    const values = await Promise.all(allRequests);
+    console.log("\nHandling initial requests:");
+    values.forEach((value, index) => {
+        value !== "[]" ? console.log("Success") : console.log("Failed");
+        if (value !== "[]") {
+            data = data.concat(value);
+        } else {
+            failedRequests.push(getOneManufacturerData(manufacturers[index]));
+        }
+    });
 
-    return promiseAll;
+    if (failedRequests.length > 0) {
+        while (failedRequests.length > 0) {
+            console.log("\nHandling failed requests: ");
+            const newRequests = await Promise.all(failedRequests);
+            failedRequests = [];
+            newRequests.forEach((value, index) => {
+                value !== "[]" ? console.log("Success") : console.log("Failed");
+                if (value !== "[]") {
+                    data = data.concat(value);
+                    failedRequests.splice(index, 1);
+                } else {
+                    failedRequests.push(getOneManufacturerData(manufacturers[index]));
+                }
+            });
+        }
+    }
+
+    console.log("\nAll requests successful");
+
+    return data;
 };
 
 app.get("/api/products/:category", async (req, res) => {
@@ -75,18 +99,10 @@ app.get("/api/products/:category", async (req, res) => {
 
 app.get("/api/availability/", async (req, res) => {
     console.log("Availability data request");
-    console.log(manufacturers);
 
-    getAllManufacturersData()
-        .then((data) => res.send(data))
-        .catch((err) => {
-            console.log(err);
-            if (err === "Sneaky error") {
-                res.send("Sneaky error");
-            } else {
-                res.send("Random error");
-            }
-        });
+    const data = await getAllManufacturersData();
+
+    res.send(data);
 });
 
 /* const port = process.env.PORT; */
