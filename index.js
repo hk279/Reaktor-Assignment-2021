@@ -28,6 +28,7 @@ const getManufacturers = (data) => {
     return arr;
 };
 
+// Initializes the manufacturer list.
 const initialize = async () => {
     let productData = await getProductData("gloves");
     manufacturers = getManufacturers(productData);
@@ -36,8 +37,6 @@ const initialize = async () => {
 };
 
 initialize();
-
-// Call functions in order to get the manufacturer list.
 
 // Gets availability data for the given manufacturer
 const getOneManufacturerData = (manufacturer) => {
