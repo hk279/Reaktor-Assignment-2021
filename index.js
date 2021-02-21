@@ -8,6 +8,7 @@ app.use(cors());
 app.use(express.static("build"));
 
 let manufacturers;
+let availabilityData = [];
 
 // Get product data for a given category
 const getProductData = (category) => {
@@ -28,15 +29,24 @@ const getManufacturers = (data) => {
     return arr;
 };
 
-// Initializes the manufacturer list.
+// Initializes the manufacturer list and availability data.
 const initialize = async () => {
+    console.log("Starting initialization\n");
     let productData = await getProductData("gloves");
     manufacturers = getManufacturers(productData);
-    console.log(manufacturers);
-    console.log("Initialized\n");
+    availabilityData = await getAllManufacturersData();
+    console.log(availabilityData.length);
+    console.log("\nInitialized\n");
 };
 
 initialize();
+
+// Refreshes the availability data from the API every 5 minutes
+setInterval(async () => {
+    console.log("\nRefreshing availability data");
+    availabilityData = await getAllManufacturersData();
+    console.log(availabilityData.length);
+}, 300000);
 
 // Gets availability data for the given manufacturer
 const getOneManufacturerData = (manufacturer) => {
@@ -66,6 +76,7 @@ const getAllManufacturersData = async () => {
         }
     });
 
+    // Handles failed requests
     if (failedRequests.length > 0) {
         while (failedRequests.length > 0) {
             console.log("\nHandling failed requests: ");
@@ -99,9 +110,7 @@ app.get("/api/products/:category", async (req, res) => {
 app.get("/api/availability/", async (req, res) => {
     console.log("Availability data request");
 
-    const data = await getAllManufacturersData();
-
-    res.send(data);
+    res.send(availabilityData);
 });
 
 /* const port = process.env.PORT; */
