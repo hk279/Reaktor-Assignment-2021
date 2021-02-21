@@ -1,6 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
 
@@ -101,20 +102,15 @@ const getAllManufacturersData = async () => {
 
 app.get("/api/products/:category", async (req, res) => {
     const category = req.params.category;
-    console.log("Product data request: " + category);
     const data = await getProductData(category);
-
     res.send(data);
 });
 
 app.get("/api/availability/", async (req, res) => {
-    console.log("Availability data request");
-
     res.send(availabilityData);
 });
 
-/* const port = process.env.PORT; */
-const port = 3001;
+const port = process.env.PORT;
 app.listen(port, () => {
-    console.log(`App listening in localhost:${port}`);
+    console.log("App listening");
 });
