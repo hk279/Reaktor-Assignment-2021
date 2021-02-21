@@ -37,16 +37,16 @@ const initialize = async () => {
     manufacturers = getManufacturers(productData);
     availabilityData = await getAllManufacturersData();
     console.log(availabilityData.length);
-    /* console.log("\nInitialized\n"); */
+    console.log("\nInitialized\n");
 };
 
 initialize();
 
 // Refreshes the availability data from the API every 5 minutes
 setInterval(async () => {
-    /* console.log("\nRefreshing availability data"); */
+    console.log("\nRefreshing availability data");
     availabilityData = await getAllManufacturersData();
-    /* console.log(availabilityData.length); */
+    console.log(availabilityData.length);
 }, 300000);
 
 // Gets availability data for the given manufacturer
@@ -68,9 +68,9 @@ const getAllManufacturersData = async () => {
     });
 
     const values = await Promise.all(allRequests);
-    /* console.log("\nHandling initial requests:"); */
+    console.log("\nHandling initial requests:");
     values.forEach((value, index) => {
-        /* value !== "[]" ? console.log("Success") : console.log("Failed"); */
+        value !== "[]" ? console.log("Success") : console.log("Failed");
         if (value !== "[]") {
             data = data.concat(value);
         } else {
@@ -81,11 +81,11 @@ const getAllManufacturersData = async () => {
     // Handles failed requests
     if (failedRequests.length > 0) {
         while (failedRequests.length > 0) {
-            /* console.log("\nHandling failed requests: "); */
+            console.log("\nHandling failed requests: ");
             const newRequests = await Promise.all(failedRequests);
             failedRequests = [];
             newRequests.forEach((value, index) => {
-                /* value !== "[]" ? console.log("Success") : console.log("Failed"); */
+                value !== "[]" ? console.log("Success") : console.log("Failed");
                 if (value !== "[]") {
                     data = data.concat(value);
                     failedRequests.splice(index, 1);
@@ -96,7 +96,7 @@ const getAllManufacturersData = async () => {
         }
     }
 
-    /* console.log("\nAll requests successful"); */
+    console.log("\nAll requests successful");
 
     return data;
 };
@@ -113,5 +113,5 @@ app.get("/api/availability/", async (req, res) => {
 
 const port = process.env.PORT;
 app.listen(port, () => {
-    console.log("App listening");
+    console.log(`App listening in port ${port}`);
 });
