@@ -32,22 +32,21 @@ const getManufacturers = (data) => {
 
 // Initializes the manufacturer list and availability data.
 const initialize = async () => {
-    /* console.log("Starting initialization\n"); */
     let productData = await getProductData("gloves");
     manufacturers = getManufacturers(productData);
     availabilityData = await getAllManufacturersData();
-    console.log(availabilityData.length);
-    console.log("\nInitialized\n");
+    /* console.log(availabilityData.length); */
+    /* console.log("\nInitialized\n"); */
 };
 
 initialize();
 
 // Refreshes the availability data from the API every 5 minutes
 setInterval(async () => {
-    console.log("\nRefreshing availability data");
+    /* console.log("\nRefreshing availability data"); */
     availabilityData = await getAllManufacturersData();
-    console.log(availabilityData.length);
-}, 300000);
+    /* console.log(availabilityData.length); */
+}, 150000);
 
 // Gets availability data for the given manufacturer
 const getOneManufacturerData = (manufacturer) => {
@@ -59,44 +58,52 @@ const getOneManufacturerData = (manufacturer) => {
 
 // Combines all individual manufacturer data requests into a single promise. Handles failed requests.
 const getAllManufacturersData = async () => {
-    let allRequests = [];
     let data = [];
     let failedRequests = [];
 
-    manufacturers.forEach((element) => {
-        allRequests.push(getOneManufacturerData(element));
-    });
+    const allRequests = manufacturers.map((name) => getOneManufacturerData(name));
 
     const values = await Promise.all(allRequests);
-    console.log("\nHandling initial requests:");
+    /* console.log("\nHandling initial requests:"); */
     values.forEach((value, index) => {
-        value !== "[]" ? console.log("Success") : console.log("Failed");
+        const manufacturer = manufacturers[index];
+
+        /* value !== "[]" ? console.log(manufacturer + ":   Success") : console.log(manufacturer + ":   Failed"); */
+
         if (value !== "[]") {
             data = data.concat(value);
         } else {
-            failedRequests.push(getOneManufacturerData(manufacturers[index]));
+            failedRequests.push(manufacturer);
         }
     });
 
+    let furtherFailedRequests = [];
+
     // Handles failed requests
-    if (failedRequests.length > 0) {
-        while (failedRequests.length > 0) {
-            console.log("\nHandling failed requests: ");
-            const newRequests = await Promise.all(failedRequests);
-            failedRequests = [];
-            newRequests.forEach((value, index) => {
-                value !== "[]" ? console.log("Success") : console.log("Failed");
-                if (value !== "[]") {
-                    data = data.concat(value);
-                    failedRequests.splice(index, 1);
-                } else {
-                    failedRequests.push(getOneManufacturerData(manufacturers[index]));
-                }
-            });
-        }
+    while (failedRequests.length > 0) {
+        /* console.log("\nHandling failed requests:   " + failedRequests); */
+
+        const newRequests = failedRequests.map((name) => getOneManufacturerData(name));
+        const newValues = await Promise.all(newRequests);
+
+        failedRequests.forEach((item, index) => {
+            const manufacturer = item;
+            const value = newValues[index];
+
+            /* value !== "[]" ? console.log(manufacturer + ":   Success") : console.log(manufacturer + ":   Failed"); */
+
+            if (value !== "[]") {
+                data = data.concat(value);
+                furtherFailedRequests.splice(index, 1);
+            } else {
+                furtherFailedRequests.push(item);
+            }
+        });
+
+        failedRequests = furtherFailedRequests;
     }
 
-    console.log("\nAll requests successful");
+    /* console.log("\nAll requests successful"); */
 
     return data;
 };
