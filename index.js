@@ -46,7 +46,7 @@ setInterval(async () => {
     console.log("\nRefreshing availability data");
     availabilityData = await getAllManufacturersData();
     console.log(availabilityData.length);
-}, 150000);
+}, 300000);
 
 // Gets availability data for the given manufacturer
 const getOneManufacturerData = (manufacturer) => {
