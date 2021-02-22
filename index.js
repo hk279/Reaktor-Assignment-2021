@@ -35,17 +35,17 @@ const initialize = async () => {
     let productData = await getProductData("gloves");
     manufacturers = getManufacturers(productData);
     availabilityData = await getAllManufacturersData();
-    /* console.log(availabilityData.length); */
-    /* console.log("\nInitialized\n"); */
+    console.log(availabilityData.length);
+    console.log("\nInitialized\n");
 };
 
 initialize();
 
 // Refreshes the availability data from the API every 5 minutes
 setInterval(async () => {
-    /* console.log("\nRefreshing availability data"); */
+    console.log("\nRefreshing availability data");
     availabilityData = await getAllManufacturersData();
-    /* console.log(availabilityData.length); */
+    console.log(availabilityData.length);
 }, 150000);
 
 // Gets availability data for the given manufacturer
@@ -64,11 +64,11 @@ const getAllManufacturersData = async () => {
     const allRequests = manufacturers.map((name) => getOneManufacturerData(name));
 
     const values = await Promise.all(allRequests);
-    /* console.log("\nHandling initial requests:"); */
+    console.log("\nHandling initial requests:");
     values.forEach((value, index) => {
         const manufacturer = manufacturers[index];
 
-        /* value !== "[]" ? console.log(manufacturer + ":   Success") : console.log(manufacturer + ":   Failed"); */
+        value !== "[]" ? console.log(manufacturer + ":   Success") : console.log(manufacturer + ":   Failed");
 
         if (value !== "[]") {
             data = data.concat(value);
@@ -81,16 +81,15 @@ const getAllManufacturersData = async () => {
 
     // Handles failed requests
     while (failedRequests.length > 0) {
-        /* console.log("\nHandling failed requests:   " + failedRequests); */
+        console.log("\nHandling failed requests:   " + failedRequests);
 
         const newRequests = failedRequests.map((name) => getOneManufacturerData(name));
         const newValues = await Promise.all(newRequests);
 
         failedRequests.forEach((item, index) => {
-            const manufacturer = item;
             const value = newValues[index];
 
-            /* value !== "[]" ? console.log(manufacturer + ":   Success") : console.log(manufacturer + ":   Failed"); */
+            value !== "[]" ? console.log(item + ":   Success") : console.log(item + ":   Failed");
 
             if (value !== "[]") {
                 data = data.concat(value);
@@ -101,9 +100,10 @@ const getAllManufacturersData = async () => {
         });
 
         failedRequests = furtherFailedRequests;
+        furtherFailedRequests = [];
     }
 
-    /* console.log("\nAll requests successful"); */
+    console.log("\nAll requests successful");
 
     return data;
 };
